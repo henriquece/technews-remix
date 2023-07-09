@@ -4,7 +4,9 @@
   "scripts": {
     "build": "remix build",
     "dev": "remix dev",
-    "typecheck": "tsc"
+    "typecheck": "tsc",
+    "lint-staged": "lint-staged",
+    "prepare": "husky install"
   },
   "dependencies": {
     "@remix-run/css-bundle": "^1.18.1",
@@ -23,6 +25,8 @@
     "@types/react": "^18.0.35",
     "@types/react-dom": "^18.0.11",
     "eslint": "^8.38.0",
+    "husky": "^8.0.3",
+    "lint-staged": "^13.2.3",
     "typescript": "^5.0.4"
   },
   "engines": {
