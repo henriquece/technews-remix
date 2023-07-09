@@ -1,41 +1,54 @@
-import type { V2_MetaFunction } from "@remix-run/node";
+import { useState } from 'react'
+import type { V2_MetaFunction } from '@remix-run/node'
+import { useLoaderData } from '@remix-run/react'
+import { Header, links as headerLinks } from '~/components/Header'
+import { Main, links as mainLinks } from '~/components/Main'
+import { getTopStories } from '~/services/hackerNews'
+import { loadStories, pageSize } from '~/utils/loadStories'
 
 export const meta: V2_MetaFunction = () => {
-  return [
-    { title: "New Remix App" },
-    { name: "description", content: "Welcome to Remix!" },
-  ];
-};
+  return [{ title: 'Tech News' }]
+}
+
+export const links = () => {
+  return [...headerLinks(), ...mainLinks()]
+}
+
+export const loader = async () => {
+  const { data: topStoriesIds } = await getTopStories()
+
+  const initialStories = await loadStories(topStoriesIds, 0)
+
+  return { topStoriesIds, initialStories }
+}
 
 export default function Index() {
+  const { initialStories, topStoriesIds } = useLoaderData<typeof loader>()
+
+  const [stories, setStories] = useState(initialStories)
+  const [isLoadingMoreStories, setIsLoadingMoreStories] = useState(false)
+  const [pageValue, setPageValue] = useState(0)
+
+  const loadMoreStories = async () => {
+    setIsLoadingMoreStories(true)
+
+    const newStories = [...stories]
+
+    newStories.push(...(await loadStories(topStoriesIds, pageValue + pageSize)))
+
+    setStories(newStories)
+    setPageValue((prevState) => (prevState += pageSize))
+    setIsLoadingMoreStories(false)
+  }
+
   return (
-    <div style={{ fontFamily: "system-ui, sans-serif", lineHeight: "1.8" }}>
-      <h1>Welcome to Remix</h1>
-      <ul>
-        <li>
-          <a
-            target="_blank"
-            href="https://remix.run/tutorials/blog"
-            rel="noreferrer"
-          >
-            15m Quickstart Blog Tutorial
-          </a>
-        </li>
-        <li>
-          <a
-            target="_blank"
-            href="https://remix.run/tutorials/jokes"
-            rel="noreferrer"
-          >
-            Deep Dive Jokes App Tutorial
-          </a>
-        </li>
-        <li>
-          <a target="_blank" href="https://remix.run/docs" rel="noreferrer">
-            Remix Docs
-          </a>
-        </li>
-      </ul>
-    </div>
-  );
+    <>
+      <Header />
+      <Main
+        stories={stories}
+        isLoadingMoreStories={isLoadingMoreStories}
+        loadMoreStories={loadMoreStories}
+      />
+    </>
+  )
 }
